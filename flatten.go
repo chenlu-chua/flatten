@@ -100,7 +100,7 @@ func FlattenStruct(i interface{}, prefix string) (map[string]interface{}, error)
 	}
 
 	outMap := make(map[string]interface{})
-	err = json.Unmarshal([]byte(outString), outMap)
+	err = json.Unmarshal([]byte(outString), &outMap)
 	if err != nil {
 		return nil, err
 	}
