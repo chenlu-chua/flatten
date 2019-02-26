@@ -46,6 +46,7 @@ package flatten
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 	"strconv"
 )
 
@@ -85,6 +86,28 @@ func Flatten(nested map[string]interface{}, prefix string, style SeparatorStyle)
 	return flatmap, nil
 }
 
+// FlattenStruct generates a flat map from a nested struct. Keys in the flat map will be a compound of
+// descending map keys and slice iterations. A prefix is joined to each key.
+func FlattenStruct(i interface{}, prefix string) (map[string]interface{}, error) {
+	str, err := json.Marshal(i)
+	if err != nil {
+		return nil, err
+	}
+
+	outString, err := FlattenString(string(str), prefix, DotStyle)
+	if err != nil {
+		return nil, err
+	}
+
+	outMap := make(map[string]interface{})
+	err = json.Unmarshal([]byte(outString), outMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return outMap, nil
+}
+
 // FlattenString generates a flat JSON map from a nested one.  Keys in the flat map will be a compound of
 // descending map keys and slice iterations.  The presentation of keys is set by style.  A prefix is joined
 // to each key.
@@ -109,6 +132,7 @@ func FlattenString(nestedstr, prefix string, style SeparatorStyle) (string, erro
 }
 
 func flatten(top bool, flatMap map[string]interface{}, nested interface{}, prefix string, style SeparatorStyle) error {
+
 	assign := func(newKey string, v interface{}) error {
 		switch v.(type) {
 		case map[string]interface{}, []interface{}:
@@ -116,7 +140,7 @@ func flatten(top bool, flatMap map[string]interface{}, nested interface{}, prefi
 				return err
 			}
 		default:
-			flatMap[newKey] = v
+			flatMap[newKey] = reflect.TypeOf(v)
 		}
 
 		return nil
